@@ -1,0 +1,25 @@
+{
+  "name": "el-globo-sistema",
+  "version": "1.0.0",
+  "description": "Sistema de Gestión Integral del Club Social y Deportivo El Globo - Fullstack",
+  "private": true,
+  "scripts": {
+    "install:all": "npm --prefix backend install && npm --prefix frontend install",
+    "dev:backend": "npm --prefix backend run start:dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:backend": "npm --prefix backend run build",
+    "build:frontend": "npm --prefix frontend run build",
+    "build": "npm run build:backend && npm run build:frontend"
+  },
+  "keywords": [
+    "club-el-globo",
+    "nestjs",
+    "react",
+    "typeorm",
+    "mysql",
+    "vite",
+    "fullstack"
+  ],
+  "author": "Caccia, Cainelli, Lapenta, Olmos - ISCA4014",
+  "license": "UNLICENSED"
+}

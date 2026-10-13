@@ -1,0 +1,65 @@
+# Dependencias
+**/node_modules/
+.pnpm-store/
+.npm/
+.yarn/cache/
+.yarn/unplugged/
+
+# Builds y compilados
+**/dist/
+**/build/
+**/.next/
+**/out/
+**/.nuxt/
+**/.output/
+**/.angular/
+**/storybook-static/
+*.tsbuildinfo
+
+# Variables de entorno sensibles (usar .env.example)
+.env
+.env.local
+.env.*.local
+!.env.example
+**/.env
+**/.env.local
+**/.env.*.local
+!**/.env.example
+
+# Logs y depuración
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+.eslintcache
+
+# Caches de bundlers, compiladores y herramientas
+**/.cache/
+**/.vite/
+**/.turbo/
+**/.parcel-cache/
+**/.nestjs/
+**/.eslintcache
+
+# Cobertura y resultados de pruebas
+**/coverage/
+**/.nyc_output/
+**/playwright-report/
+**/test-results/
+
+# Archivos de sistema operativo y editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Temporales de tests y cobertura
+*.tmp
+*.temp
+
+# Datos locales de motores de base de datos
+mysql-data/
+mariadb-data/
