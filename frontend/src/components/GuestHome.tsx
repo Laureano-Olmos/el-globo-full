@@ -42,6 +42,7 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
     nombreCompleto: '',
     dni: '',
     email: '',
+    passwordInicial: '',
     telefono: '',
     direccion: '',
     zonaCobro: 0,
@@ -81,8 +82,8 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.nombreCompleto.trim() || !formData.dni.trim() || !formData.email.trim()) {
-      showToast('error', 'Campos incompletos', 'Por favor ingresa nombre, DNI y correo electrónico.');
+    if (!formData.nombreCompleto.trim() || !formData.dni.trim() || !formData.email.trim() || formData.passwordInicial.length < 8) {
+      showToast('error', 'Campos incompletos', 'Completá nombre, DNI, correo y una contraseña de al menos 8 caracteres.');
       return;
     }
 
@@ -96,6 +97,7 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
       zonaCobro: Number(formData.zonaCobro),
       fechaNacimiento: formData.fechaNacimiento,
       fechaIngreso: hoyStr,
+      passwordInicial: formData.passwordInicial,
       esTitularFamilia: false,
       familiares: [],
       actividadesIds: formData.actividadInteresId ? [formData.actividadInteresId] : [],
@@ -105,6 +107,7 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
       setFormSubmittedSuccess({
         nombre: formData.nombreCompleto,
         dni: formData.dni,
+        email: formData.email,
         categoria: categoryPreview.label,
         cuota: categoryPreview.fee,
         zona: ZONAS_NOMBRES[Number(formData.zonaCobro)].nombre,
@@ -115,6 +118,7 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
         nombreCompleto: '',
         dni: '',
         email: '',
+        passwordInicial: '',
         telefono: '',
         direccion: '',
         zonaCobro: 0,
@@ -202,7 +206,7 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
                 title="Acceder con credenciales de Socio, Cobrador, Instructor o Administrador"
               >
                 <LogIn className="w-4 h-4 text-blue-400" />
-                <span>Acceso al Sistema</span>
+                <span>Ingresar</span>
               </button>
             </div>
 
@@ -271,7 +275,7 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
             <div className="w-12 h-12 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center mb-4">
               <Users className="w-6 h-6" />
             </div>
-            <h3 className="font-bold text-base text-slate-900 mb-2">Plan Grupo Familiar (R4)</h3>
+            <h3 className="font-bold text-base text-slate-900 mb-2">Plan Grupo Familiar</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
               Bonificación estatutaria de ${CUOTA_VALORES.DESCUENTO_FAMILIAR_POR_HIJO.toLocaleString('es-AR')} mensual por cada hijo menor de 18 años adherido al socio titular. Cuidamos la economía familiar.
             </p>
@@ -281,7 +285,7 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
             <div className="w-12 h-12 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center mb-4">
               <Award className="w-6 h-6" />
             </div>
-            <h3 className="font-bold text-base text-slate-900 mb-2">Reconocimiento al Vitalicio (R3)</h3>
+            <h3 className="font-bold text-base text-slate-900 mb-2">Reconocimiento al Vitalicio</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
               Socios con más de 30 años ininterrumpidos en el club quedan 100% exentos de la cuota social como gratitud por su fidelidad e historia compartida.
             </p>
@@ -291,7 +295,7 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
             <div className="w-12 h-12 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center mb-4">
               <MapPin className="w-6 h-6" />
             </div>
-            <h3 className="font-bold text-base text-slate-900 mb-2">Cobranza a Domicilio por Zonas (R7)</h3>
+            <h3 className="font-bold text-base text-slate-900 mb-2">Cobranza a Domicilio por Zonas</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
               3 cobradores domiciliarios oficiales recorren Centro, Sur y Costanera con recibo troquelado oficial. También podés abonar en ventanilla de Sede Central.
             </p>
@@ -456,7 +460,7 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
                   $0
                 </span>
                 <span className="text-xs text-slate-300 font-normal"> / mes (Exento)</span>
-                <span className="block text-[11px] text-amber-300/90 mt-1">100% bonificado de por vida (R3)</span>
+                <span className="block text-[11px] text-amber-300/90 mt-1">Cuota social bonificada de por vida</span>
               </div>
 
               <ul className="space-y-2.5 text-xs text-slate-200">
@@ -649,16 +653,18 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
                     <strong> ${formSubmittedSuccess.cuota.toLocaleString('es-AR')}/mes</strong> asignado a la 
                     <strong> {formSubmittedSuccess.zona}</strong>.
                   </p>
+                  <p className="mt-2 text-xs font-medium text-emerald-900">
+                    Tu cuenta quedó creada. Ingresá con {formSubmittedSuccess.email} y la contraseña que elegiste.
+                  </p>
 
                   <div className="mt-4 flex flex-wrap gap-2">
                     <button
                       onClick={() => {
-                        // Switch to socio portal to test
                         setShowDirectLogin(true);
                       }}
                       className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-md text-xs font-bold transition-colors"
                     >
-                      Ver Portal del Socio & Carnet Digital
+                      Ingresar al portal del socio
                     </button>
                     <button
                       onClick={() => setFormSubmittedSuccess(null)}
@@ -718,6 +724,22 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Contraseña de acceso *
+                </label>
+                <input
+                  type="password"
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  value={formData.passwordInicial}
+                  onChange={(e) => setFormData({ ...formData, passwordInicial: e.target.value })}
+                  className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                />
+                <p className="mt-1 text-[11px] text-slate-500">Mínimo 8 caracteres. La contraseña se guarda protegida.</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
                   Teléfono de Contacto
                 </label>
                 <input
@@ -760,7 +782,7 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Zona de Cobro Preferida (R7)
+                  Zona de Cobro Preferida
                 </label>
                 <select
                   value={formData.zonaCobro}

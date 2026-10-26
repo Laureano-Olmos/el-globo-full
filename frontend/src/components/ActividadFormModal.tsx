@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { Actividad } from '../types';
+import { Instructor, personalApi } from '../api/personal.api';
 
 type Turno = 'MATUTINO' | 'VESPERTINO' | 'NOCTURNO';
 
@@ -13,6 +14,7 @@ interface ActividadPayload {
   horaInicio?: string;
   horaFin?: string;
   cupoMaximo?: number;
+  instructorId?: number;
 }
 
 interface ActividadFormModalProps {
@@ -35,6 +37,11 @@ const emptyForm: ActividadPayload = {
 export const ActividadFormModal: React.FC<ActividadFormModalProps> = ({ actividad, onClose, onSave }) => {
   const [form, setForm] = useState<ActividadPayload>(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [instructores, setInstructores] = useState<Instructor[]>([]);
+
+  useEffect(() => {
+    personalApi.instructores.getAll().then(setInstructores).catch(() => setInstructores([]));
+  }, []);
 
   useEffect(() => {
     if (!actividad) {
@@ -54,6 +61,7 @@ export const ActividadFormModal: React.FC<ActividadFormModalProps> = ({ activida
       horaInicio,
       horaFin,
       cupoMaximo: actividad.cupoMaximo,
+      instructorId: actividad.instructorId ? Number(actividad.instructorId) : undefined,
     });
   }, [actividad]);
 
@@ -122,6 +130,13 @@ export const ActividadFormModal: React.FC<ActividadFormModalProps> = ({ activida
           <label>
             <span className="mb-1 block font-semibold text-slate-700">Cupo máximo</span>
             <input required type="number" min="1" step="1" value={form.cupoMaximo} onChange={(event) => change('cupoMaximo', Number(event.target.value))} className="w-full rounded border border-slate-300 px-3 py-2" />
+          </label>
+          <label>
+            <span className="mb-1 block font-semibold text-slate-700">Instructor</span>
+            <select value={form.instructorId ?? ''} onChange={(event) => change('instructorId', event.target.value ? Number(event.target.value) : undefined)} className="w-full rounded border border-slate-300 bg-white px-3 py-2">
+              <option value="">Sin asignar</option>
+              {instructores.map((instructor) => <option key={instructor.id} value={instructor.id}>{instructor.nombre} {instructor.apellido}</option>)}
+            </select>
           </label>
           <div className="flex justify-end gap-2 sm:col-span-2">
             <button type="button" onClick={onClose} className="rounded border border-slate-300 px-4 py-2 font-semibold text-slate-700">Cancelar</button>

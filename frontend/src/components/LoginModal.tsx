@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { X, LogIn, Lock, Mail, ShieldAlert, Sparkles, CheckCircle2 } from 'lucide-react';
+import { X, LogIn, Lock, Mail, ShieldAlert } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { TEST_CREDENTIALS } from '../data/constants';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -38,12 +37,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleQuickLogin = (testEmail: string, testPass: string) => {
-    setEmail(testEmail);
-    setPassword(testPass);
-    setErrorMessage('');
   };
 
   return (
@@ -128,47 +121,17 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
               ) : (
                 <>
                   <LogIn className="w-4 h-4" />
-                  <span>Iniciar Sesión con JWT</span>
+                  <span>Iniciar sesión</span>
                 </>
               )}
             </button>
           </form>
 
-          {/* Quick Credentials Helper */}
-          <div className="pt-3 border-t border-slate-200">
-            <div className="flex items-center space-x-1 text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Credenciales Oficiales de Prueba (Base de Datos):</span>
-            </div>
-
-            <div className="space-y-1.5">
-              {TEST_CREDENTIALS.map((cred) => (
-                <button
-                  key={cred.email}
-                  type="button"
-                  onClick={() => handleQuickLogin(cred.email, cred.password)}
-                  className="w-full text-left p-2 rounded-lg border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all flex items-center justify-between group"
-                >
-                  <div>
-                    <div className="text-xs font-bold text-slate-800 group-hover:text-blue-700">
-                      {cred.label}
-                    </div>
-                    <div className="text-[10px] text-slate-500 font-mono">
-                      {cred.email} • {cred.password}
-                    </div>
-                  </div>
-                  <span className="text-[10px] bg-slate-100 group-hover:bg-blue-100 text-slate-700 px-2 py-0.5 rounded font-semibold">
-                    Autocompletar
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Footer */}
         <div className="bg-slate-50 px-6 py-2.5 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500">
-          <span>Autenticación segura con NestJS & JWT</span>
+          <span>Cuenta de acceso del club</span>
           <button
             onClick={onClose}
             className="text-xs font-semibold text-slate-600 hover:text-slate-900"

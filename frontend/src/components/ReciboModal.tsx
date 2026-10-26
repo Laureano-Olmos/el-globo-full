@@ -15,23 +15,40 @@ export const ReciboModal: React.FC<ReciboModalProps> = ({ cupon, onClose }) => {
   if (!cupon) return null;
 
   const handlePrint = () => {
-    try {
-      const originalTitle = document.title;
-      // Set descriptive filename for PDF saving or printing
-      document.title = `Recibo_${cupon.numeroComprobante}_${cupon.socioNombre.replace(/\s+/g, '_')}`;
-      
-      // Ensure focus on current window/frame before triggering native browser print
-      window.focus();
-      window.print();
-
-      // Restore document title after print dialogue
-      setTimeout(() => {
-        document.title = originalTitle;
-      }, 1000);
-    } catch (error) {
-      console.error('Error al imprimir comprobante:', error);
-      window.print();
+    const printableContent = document.getElementById('recibo-printable-content');
+    if (!printableContent) {
+      showToast('error', 'No se pudo imprimir', 'No se encontró el contenido del recibo.');
+      return;
     }
+
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
+    if (!printWindow) {
+      showToast('error', 'Ventana bloqueada', 'Permití las ventanas emergentes para imprimir el recibo.');
+      return;
+    }
+
+    const title = `Recibo_${cupon.numeroComprobante}_${cupon.socioNombre.replace(/\s+/g, '_')}`;
+    const stylesheets = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+      .map((element) => element.outerHTML)
+      .join('');
+    printWindow.document.open();
+    printWindow.onload = () => {
+      printWindow.focus();
+      printWindow.print();
+      printWindow.onafterprint = () => printWindow.close();
+    };
+    printWindow.document.write(`<!doctype html><html><head><title>${title}</title><meta charset="utf-8">${stylesheets}<style>
+      @page { size: A4 portrait; margin: 12mm; }
+      * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body { margin: 0; color: #1f2937; font: 12px/1.45 Arial, sans-serif; }
+      h4 { margin: 0; font-size: 16px; }
+      table { border-collapse: collapse; }
+      th, td { border: 1px solid #cbd5e1; padding: 7px; }
+      .slip { border: 1px solid #94a3b8; padding: 16px; margin-bottom: 14px; page-break-inside: avoid; }
+      .separator { border-top: 2px dashed #94a3b8; margin: 20px 0; text-align: center; }
+      @media print { body { width: 100%; } }
+    </style></head><body>${printableContent.innerHTML}</body></html>`);
+    printWindow.document.close();
   };
 
   const handlePagar = (metodo: 'EFECTIVO' | 'TRANSFERENCIA' | 'SEDE_CENTRAL') => {
@@ -72,7 +89,7 @@ export const ReciboModal: React.FC<ReciboModalProps> = ({ cupon, onClose }) => {
         <div id="recibo-printable-content" className="p-6 bg-white text-slate-800 text-xs sm:text-sm">
           
           {/* Slip 1: Talón para el Socio */}
-          <div className="border border-slate-300 rounded-md p-4 mb-4 bg-slate-50/50 print:bg-white print:border-slate-400">
+          <div className="slip border border-slate-300 rounded-md p-4 mb-4 bg-slate-50/50 print:bg-white print:border-slate-400">
             <div className="flex justify-between items-start border-b border-slate-200 pb-3 mb-3">
               <div>
                 <h4 className="text-base font-black text-[#1A365D]">CLUB SOCIAL Y DEPORTIVO "EL GLOBO"</h4>
@@ -183,14 +200,14 @@ export const ReciboModal: React.FC<ReciboModalProps> = ({ cupon, onClose }) => {
           </div>
 
           {/* Separation line */}
-          <div className="border-t-2 border-dashed border-slate-300 my-4 text-center">
+          <div className="separator border-t-2 border-dashed border-slate-300 my-4 text-center">
             <span className="bg-white px-3 text-[10px] text-slate-400 uppercase tracking-widest relative -top-2.5">
               ✂ corte aquí para secretaría / cobranza
             </span>
           </div>
 
           {/* Slip 2: Talón para Tesorería */}
-          <div className="border border-slate-300 rounded p-3 bg-slate-50/50 text-xs print:bg-white print:border-slate-400">
+          <div className="slip border border-slate-300 rounded p-3 bg-slate-50/50 text-xs print:bg-white print:border-slate-400">
             <div className="flex justify-between items-center">
               <div>
                 <strong className="text-slate-900 block font-bold">CLUB EL GLOBO — TALÓN DE TESORERÍA / COBRANZA</strong>

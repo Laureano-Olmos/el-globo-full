@@ -1,7 +1,11 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
+import { DataSource } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 import { Socio } from './entities/socio.entity';
+import { User } from '../users/entities/user.entity';
+import { Role } from '../common/enums/role.enum';
 import { CreateSocioDto } from './dto/create-socio.dto';
 import { UpdateSocioDto } from './dto/update-socio.dto';
 import { QuerySocioDto } from './dto/query-socio.dto';
@@ -15,6 +19,7 @@ export class SociosService {
   constructor(
     @InjectRepository(Socio) private readonly repo: Repository<Socio>,
     private readonly configuracionService: ConfiguracionService,
+    private readonly dataSource: DataSource,
   ) {}
 
   /** ABMC de socios (R3), validando unicidad de DNI y correo. */
@@ -25,15 +30,31 @@ export class SociosService {
     const fechaAlta = dto.fechaAlta ? new Date(dto.fechaAlta) : new Date();
     const categoria = await this.calcularCategoria(fechaNacimiento, fechaAlta);
 
-    const socio = this.repo.create({
-      ...dto,
-      fechaNacimiento,
-      fechaAlta,
-      categoria,
-      estado: EstadoSocio.ACTIVO,
-    });
+    const { passwordInicial, ...datosSocio } = dto;
+    return this.dataSource.transaction(async (manager) => {
+      const usuarios = manager.getRepository(User);
+      if (await usuarios.findOne({ where: { email: dto.email } })) {
+        throw new ConflictException(`Ya existe un usuario con el correo ${dto.email}.`);
+      }
 
-    return this.repo.save(socio);
+      const socios = manager.getRepository(Socio);
+      const socio = await socios.save(socios.create({
+        ...datosSocio,
+        fechaNacimiento,
+        fechaAlta,
+        categoria,
+        estado: EstadoSocio.ACTIVO,
+      }));
+
+      const usuario = usuarios.create({
+        email: socio.email,
+        password: await bcrypt.hash(passwordInicial, 10),
+        role: Role.SOCIO,
+        socio,
+      });
+      await usuarios.save(usuario);
+      return socio;
+    });
   }
 
   async findAll(query: QuerySocioDto): Promise<Socio[]> {

@@ -22,6 +22,7 @@ import {
   X,
   LogIn,
   Settings,
+  BriefcaseBusiness,
 } from 'lucide-react';
 import { useApp, ActiveTab } from '../context/AppContext';
 import { UserRole } from '../types';
@@ -54,12 +55,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenPlanDoc }) => {
     { id: 'inicio', label: 'Inicio / Club', icon: Home, roles: ['ADMIN', 'COBRADOR', 'INSTRUCTOR', 'SOCIO', 'PUBLICO'] },
     { id: 'dashboard', label: 'Tablero', icon: LayoutDashboard, roles: ['ADMIN'] },
     { id: 'socios', label: 'Padrón Socios', icon: Users, roles: ['ADMIN'] },
+    { id: 'personal', label: 'Personal', icon: BriefcaseBusiness, roles: ['ADMIN'] },
     { id: 'casilleros', label: '100 Casilleros', icon: Grid, roles: ['ADMIN'] },
     { id: 'actividades', label: 'Deportes', icon: Trophy, roles: ['ADMIN', 'INSTRUCTOR', 'SOCIO', 'PUBLICO'] },
     { id: 'asistencia', label: 'Asistencia', icon: ClipboardCheck, roles: ['ADMIN', 'INSTRUCTOR'] },
     { id: 'cobranza', label: 'Cobranza & Zonas', icon: Receipt, roles: ['ADMIN', 'COBRADOR'] },
     { id: 'rendicion', label: 'Rendición (10%)', icon: FileSpreadsheet, roles: ['ADMIN', 'COBRADOR'], badge: rendicionesPendientes },
-    { id: 'morosidad', label: 'Morosidad (R10)', icon: AlertOctagon, roles: ['ADMIN'], badge: morososCount },
+    { id: 'morosidad', label: 'Morosidad', icon: AlertOctagon, roles: ['ADMIN'], badge: morososCount },
     { id: 'portal_socio', label: 'Mi Portal Socio', icon: UserCheck, roles: ['SOCIO', 'ADMIN'] },
   ];
 
@@ -94,7 +96,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenPlanDoc }) => {
                 </span>
               </div>
               <p className="text-[11px] text-slate-300 font-light">
-                Sistema de Gestión Integral • Frontend React
+                Sistema de gestión del club
               </p>
             </div>
           </div>
@@ -112,16 +114,16 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenPlanDoc }) => {
               </button>
             )}
 
-            {/* View Implementation Plan */}
-            <button
-              onClick={onOpenPlanDoc}
-              className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium bg-slate-800/80 hover:bg-slate-700 rounded-md border border-slate-600 text-blue-100 transition-colors shadow-xs"
-              title="Ver el Plan de Implementación Frontend de 6 Semanas"
-            >
-              <FileText className="w-4 h-4 text-red-400" />
-              <span className="hidden md:inline">Plan Técnico</span>
-              <span className="hidden lg:inline text-[10px] text-slate-300">(Caccia, Cainelli...)</span>
-            </button>
+            {currentUser.role !== 'PUBLICO' && (
+              <button
+                onClick={onOpenPlanDoc}
+                className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium bg-slate-800/80 hover:bg-slate-700 rounded-md border border-slate-600 text-blue-100 transition-colors shadow-xs"
+                title="Plan de implementación"
+              >
+                <FileText className="w-4 h-4 text-red-400" />
+                <span className="hidden md:inline">Plan técnico</span>
+              </button>
+            )}
 
             {currentUser.role === 'ADMIN' && (
               <button

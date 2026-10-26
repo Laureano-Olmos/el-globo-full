@@ -32,6 +32,7 @@ export type ActiveTab =
   | 'cobranza'
   | 'rendicion'
   | 'morosidad'
+  | 'personal'
   | 'portal_socio'
   | 'plan_doc';
 
@@ -55,7 +56,7 @@ interface AppContextType {
   
   // Socios
   socios: Socio[];
-  addSocio: (data: Omit<Socio, 'id' | 'numeroSocio' | 'edad' | 'antiguedadAnios' | 'categoria' | 'estado' | 'cuotasAdeudadas'>) => Promise<boolean>;
+  addSocio: (data: Omit<Socio, 'id' | 'numeroSocio' | 'edad' | 'antiguedadAnios' | 'categoria' | 'estado' | 'cuotasAdeudadas'> & { passwordInicial: string }) => Promise<boolean>;
   updateSocio: (id: string, data: Partial<Socio>) => Promise<boolean>;
   deleteSocio: (id: string) => Promise<void>;
   reactivarSocio: (id: string) => Promise<void>;
@@ -259,8 +260,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [asistencias]);
 
   // SOCIOS CRUD
-  const addSocio = async (data: Omit<Socio, 'id' | 'numeroSocio' | 'edad' | 'antiguedadAnios' | 'categoria' | 'estado' | 'cuotasAdeudadas'>): Promise<boolean> => {
-    if (currentUser.role !== 'ADMIN') {
+  const addSocio = async (data: Omit<Socio, 'id' | 'numeroSocio' | 'edad' | 'antiguedadAnios' | 'categoria' | 'estado' | 'cuotasAdeudadas'> & { passwordInicial: string }): Promise<boolean> => {
+    if (currentUser.role !== 'ADMIN' && currentUser.role !== 'PUBLICO') {
       showToast('error', 'Acceso denegado', 'Solo un administrador puede registrar socios desde el sistema.');
       return false;
     }
@@ -273,7 +274,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     try {
-      const newSocio = await sociosApi.create(data);
+      const newSocio = await sociosApi.create(data, currentUser.role === 'PUBLICO');
       setSocios((prev) => [newSocio, ...prev]);
       showToast('success', 'Socio registrado', `N° ${newSocio.numeroSocio} - ${newSocio.nombreCompleto} registrado con éxito.`);
       return true;

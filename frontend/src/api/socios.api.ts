@@ -14,6 +14,7 @@ export interface BackendSocio {
   email: string;
   categoria: SocioCategoria;
   zonaCobro: number;
+  passwordInicial: string;
   estado: 'ACTIVO' | 'MOROSO' | 'SUSPENDIDO' | 'BAJA';
   mesesImpagosConsecutivos: number;
   grupoFamiliar?: {
@@ -47,6 +48,7 @@ export interface CreateSocioPayload {
   telefono?: string;
   email: string;
   zonaCobro: number;
+  passwordInicial: string;
 }
 
 export const mapBackendSocioToFrontend = (s: BackendSocio): Socio => {
@@ -135,7 +137,8 @@ export const sociosApi = {
     zonaCobro: number;
     fechaNacimiento: string;
     fechaIngreso?: string;
-  }): Promise<Socio> {
+    passwordInicial: string;
+  }, publicRegistration = false): Promise<Socio> {
     const parts = data.nombreCompleto.trim().split(' ');
     const nombre = parts.length > 1 ? parts.slice(0, -1).join(' ') : parts[0];
     const apellido = parts.length > 1 ? parts[parts.length - 1] : parts[0];
@@ -150,9 +153,10 @@ export const sociosApi = {
       zonaCobro: Number(data.zonaCobro),
       fechaNacimiento: data.fechaNacimiento,
       fechaAlta: data.fechaIngreso || new Date().toISOString().split('T')[0],
+      passwordInicial: data.passwordInicial,
     };
 
-    const s = await api.post<BackendSocio>('/socios', payload);
+    const s = await api.post<BackendSocio>(publicRegistration ? '/socios/registro' : '/socios', payload);
     return mapBackendSocioToFrontend(s);
   },
 

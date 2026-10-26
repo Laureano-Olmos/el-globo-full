@@ -59,26 +59,6 @@ export const DEFAULT_GUEST_USER: AppUser = {
 };
 
 /**
- * Credenciales de prueba oficiales (precargadas en la base de datos MySQL `el_globo.sql`).
- */
-export const TEST_CREDENTIALS = [
-  {
-    role: 'ADMIN' as const,
-    label: 'Administrador General',
-    email: 'admin@elglobo.com.ar',
-    password: 'Admin123!',
-    descripcion: 'Acceso total: Socios, casilleros, actividades, cupones y configuración',
-  },
-  {
-    role: 'COBRADOR' as const,
-    label: 'Cobrador Zona 1 (Pérez)',
-    email: 'perez.cobrador@elglobo.com.ar',
-    password: 'Cobrador123!',
-    descripcion: 'Gestión de cupones de Zona 1 y rendición semanal del 10%',
-  },
-];
-
-/**
  * Arreglos iniciales vacíos (sin datos de ejemplo fake).
  * Los datos se consumen dinámicamente desde el backend NestJS y la base de datos MySQL.
  */

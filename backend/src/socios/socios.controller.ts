@@ -21,6 +21,7 @@ import { Role } from '../common/enums/role.enum';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../auth/interfaces/authenticated-user.interface';
+import { Public } from '../common/decorators/public.decorator';
 
 /**
  * Gestión de socios (R3). El administrador tiene acceso total (CUD-26 a
@@ -38,6 +39,12 @@ export class SociosController {
   @Post()
   @Roles(Role.ADMIN)
   create(@Body() dto: CreateSocioDto) {
+    return this.sociosService.create(dto);
+  }
+
+  @Public()
+  @Post('registro')
+  register(@Body() dto: CreateSocioDto) {
     return this.sociosService.create(dto);
   }
 

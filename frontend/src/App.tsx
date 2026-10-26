@@ -12,6 +12,7 @@ import { MorosidadControl } from './components/MorosidadControl';
 import { SocioPortal } from './components/SocioPortal';
 import { GuestHome } from './components/GuestHome';
 import { PlanDocumentModal } from './components/PlanDocumentModal';
+import { PersonalAdmin } from './components/PersonalAdmin';
 import { Building2, ShieldCheck, Heart } from 'lucide-react';
 
 const AppContent: React.FC = () => {
@@ -38,6 +39,8 @@ const AppContent: React.FC = () => {
         return <RendicionCobrador />;
       case 'morosidad':
         return <MorosidadControl />;
+      case 'personal':
+        return <PersonalAdmin />;
       case 'portal_socio':
         return <SocioPortal />;
       case 'plan_doc':
@@ -86,10 +89,10 @@ const AppContent: React.FC = () => {
           <div className="flex items-center space-x-4 text-[11px]">
             <span className="flex items-center space-x-1">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Reglamento Estatutario Vigente</span>
+              <span>Club Social y Deportivo</span>
             </span>
             <span>•</span>
-            <span>Versión 2.4 Frontend React</span>
+            <span>El Globo</span>
           </div>
         </div>
       </footer>

@@ -16,6 +16,7 @@ export const SocioFormModal: React.FC<SocioFormModalProps> = ({ socioToEdit, isO
   const [nombreCompleto, setNombreCompleto] = useState('');
   const [dni, setDni] = useState('');
   const [email, setEmail] = useState('');
+  const [passwordInicial, setPasswordInicial] = useState('');
   const [telefono, setTelefono] = useState('');
   const [direccion, setDireccion] = useState('');
   const [zonaCobro, setZonaCobro] = useState<number>(1);
@@ -28,6 +29,7 @@ export const SocioFormModal: React.FC<SocioFormModalProps> = ({ socioToEdit, isO
       setNombreCompleto(socioToEdit.nombreCompleto);
       setDni(socioToEdit.dni);
       setEmail(socioToEdit.email);
+      setPasswordInicial('');
       setTelefono(socioToEdit.telefono);
       setDireccion(socioToEdit.direccion);
       setZonaCobro(socioToEdit.zonaCobro);
@@ -37,6 +39,7 @@ export const SocioFormModal: React.FC<SocioFormModalProps> = ({ socioToEdit, isO
       setNombreCompleto('');
       setDni('');
       setEmail('');
+      setPasswordInicial('');
       setTelefono('');
       setDireccion('');
       setZonaCobro(1);
@@ -59,6 +62,10 @@ export const SocioFormModal: React.FC<SocioFormModalProps> = ({ socioToEdit, isO
 
     if (!nombreCompleto.trim() || !dni.trim() || !fechaNacimiento || !fechaIngreso) {
       setErrorMsg('Por favor complete los campos obligatorios.');
+      return;
+    }
+    if (!socioToEdit && passwordInicial.length < 8) {
+      setErrorMsg('La contraseña inicial debe tener al menos 8 caracteres.');
       return;
     }
 
@@ -84,6 +91,7 @@ export const SocioFormModal: React.FC<SocioFormModalProps> = ({ socioToEdit, isO
         zonaCobro,
         fechaNacimiento,
         fechaIngreso,
+        passwordInicial,
         esTitularFamilia: false,
         familiares: [],
         actividadesIds: [],
@@ -215,12 +223,29 @@ export const SocioFormModal: React.FC<SocioFormModalProps> = ({ socioToEdit, isO
               <label className="block text-[11px] font-semibold text-slate-700 mb-1">Correo Electrónico</label>
               <input
                 type="email"
+                  required={!socioToEdit}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="ejemplo@correo.com"
                 className="w-full px-3 py-2 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
               />
             </div>
+
+            {!socioToEdit && (
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Contraseña inicial de acceso *</label>
+                <input
+                  type="password"
+                  required
+                  minLength={8}
+                  value={passwordInicial}
+                  onChange={(e) => setPasswordInicial(e.target.value)}
+                  autoComplete="new-password"
+                  className="w-full px-3 py-2 border border-slate-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                />
+                <p className="mt-1 text-[10px] text-slate-500">Compartila con el socio por un canal seguro.</p>
+              </div>
+            )}
 
             <div>
               <label className="block text-[11px] font-semibold text-slate-700 mb-1">Teléfono Celular</label>

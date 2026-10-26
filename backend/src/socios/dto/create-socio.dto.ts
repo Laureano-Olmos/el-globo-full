@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsEmail, IsEnum, IsOptional, IsString, Length } from 'class-validator';
+import { IsDateString, IsEmail, IsEnum, IsOptional, IsString, Length, MinLength } from 'class-validator';
 import { ZonaCobro } from '../../common/enums/zona-cobro.enum';
 
 export class CreateSocioDto {
@@ -25,6 +25,11 @@ export class CreateSocioDto {
   @ApiProperty({ required: false }) @IsOptional() @IsString() telefono?: string;
 
   @ApiProperty() @IsEmail() email: string;
+
+  @ApiProperty({ writeOnly: true, minLength: 8 })
+  @IsString()
+  @MinLength(8)
+  passwordInicial: string;
 
   @ApiProperty({ enum: ZonaCobro, default: ZonaCobro.ZONA_0 })
   @IsEnum(ZonaCobro)
