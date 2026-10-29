@@ -11,9 +11,6 @@ import {
   UserRole,
   SocioCategoria,
 } from '../types';
-import {
-  CUOTA_VALORES,
-} from '../data/mockData';
 import { authApi } from '../api/auth.api';
 import { actividadesApi } from '../api/actividades.api';
 import { casillerosApi } from '../api/casilleros.api';
@@ -21,6 +18,7 @@ import { cuponesApi } from '../api/cupones.api';
 import { rendicionesApi } from '../api/rendiciones.api';
 import { cobradoresApi } from '../api/cobradores.api';
 import { sociosApi } from '../api/socios.api';
+import { configuracionApi, BackendConfiguracion } from '../api/configuracion.api';
 
 export type ActiveTab =
   | 'inicio'
@@ -34,7 +32,6 @@ export type ActiveTab =
   | 'morosidad'
   | 'personal'
   | 'portal_socio'
-  | 'plan_doc';
 
 interface ToastMessage {
   id: string;
@@ -51,6 +48,9 @@ interface AppContextType {
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
   toast: ToastMessage | null;
+  configuracion: BackendConfiguracion | null;
+  configuracionCargada: boolean;
+  refreshConfiguracion: () => Promise<BackendConfiguracion | null>;
   showToast: (type: 'success' | 'error' | 'warning' | 'info', title: string, description?: string) => void;
   closeToast: () => void;
   
@@ -84,7 +84,6 @@ interface AppContextType {
 
   // Cupones y Cobranza
   cupones: CuponRecibo[];
-  generarCuponMesActual: (socioId: string) => void;
   generarCuponesMensuales: () => Promise<void>;
   marcarCuponPagado: (cuponId: string, metodoPago: 'EFECTIVO' | 'TRANSFERENCIA' | 'SEDE_CENTRAL', cobradorId?: string) => Promise<void>;
   reemitirCuponConMora: (cuponId: string) => Promise<void>;
@@ -112,6 +111,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [activeTab, setActiveTab] = useState<ActiveTab>('inicio');
   const [toast, setToast] = useState<ToastMessage | null>(null);
+  const [configuracion, setConfiguracion] = useState<BackendConfiguracion | null>(null);
+  const [configuracionCargada, setConfiguracionCargada] = useState(false);
 
   const showToast = (type: 'success' | 'error' | 'warning' | 'info', title: string, description?: string) => {
     const id = Date.now().toString();
@@ -122,6 +123,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const closeToast = () => setToast(null);
+
+  const refreshConfiguracion = async (): Promise<BackendConfiguracion | null> => {
+    try {
+      const current = await configuracionApi.get();
+      setConfiguracion(current);
+      setConfiguracionCargada(true);
+      return current;
+    } catch {
+      setConfiguracionCargada(true);
+      return null;
+    }
+  };
 
   const login = async (email: string, password: string): Promise<boolean> => {
     const result = await authApi.login({ email, password });
@@ -162,6 +175,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const load = async () => {
       const tasks: Array<Promise<void>> = [
         actividadesApi.getAll().then((data) => { if (active) setActividades(data); }),
+        configuracionApi.get()
+          .then((data) => { if (active) setConfiguracion(data); })
+          .finally(() => { if (active) setConfiguracionCargada(true); }),
       ];
 
       if (['ADMIN', 'COBRADOR', 'INSTRUCTOR'].includes(currentUser.role)) {
@@ -332,7 +348,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
     if (isNaN(edad) || edad < 0) edad = 0;
 
-    // Si es hijo, validar requerimiento R4: < 18 años
+    // Los hijos adheridos al plan familiar deben ser menores de 18 años.
     if ((familiarData.parentesco === 'HIJO' || familiarData.parentesco === 'HIJA') && edad >= 18) {
       showToast('warning', 'Validación Plan Familiar', 'Los hijos mayores de 18 años deben asociarse individualmente como categoría Activo.');
       return;
@@ -381,15 +397,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     }
 
-    // Regla R10: Control de morosidad bloquea casilleros
+    // La morosidad bloquea el alquiler de casilleros.
     if (socio.estado === 'SUSPENDIDO_MOROSIDAD') {
-      showToast('error', 'Acción denegada por Morosidad (R10)', `El socio ${socio.nombreCompleto} está suspendido por adeudar 2 o más cuotas. Debe regularizar su deuda en secretaría.`);
+      showToast('error', 'Acción denegada por morosidad', `El socio ${socio.nombreCompleto} debe regularizar su deuda en secretaría.`);
       return false;
     }
 
-    // Regla R6: Asignación ÚNICA de casillero por socio
+    // Cada socio puede tener un único casillero.
     if (socio.casilleroAsignadoId && socio.casilleroAsignadoId !== lockerNumber) {
-      showToast('error', 'Límite de casillero alcanzado (R6)', `El socio ya cuenta con el casillero N° ${socio.casilleroAsignadoId} asignado. Máximo 1 casillero por socio.`);
+      showToast('error', 'Límite de casillero alcanzado', `El socio ya cuenta con el casillero N° ${socio.casilleroAsignadoId} asignado.`);
       return false;
     }
 
@@ -493,9 +509,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (!socio || !actividad) return false;
 
-    // Regla R10: Control de morosidad bloquea actividades
+    // La morosidad bloquea nuevas inscripciones.
     if (socio.estado === 'SUSPENDIDO_MOROSIDAD') {
-      showToast('error', 'Bloqueo por Morosidad (R10)', `El socio ${socio.nombreCompleto} se encuentra suspendido. Regularice su estado contable para inscribirse a deportes.`);
+      showToast('error', 'Bloqueo por morosidad', `El socio ${socio.nombreCompleto} debe regularizar su estado contable para inscribirse a deportes.`);
       return false;
     }
 
@@ -582,10 +598,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // CUPONES & RECIBOS
-  const generarCuponMesActual = () => {
-    showToast('warning', 'Emisión individual no disponible', 'El backend solo permite emitir cupones mensuales por lote.');
-  };
-
   const generarCuponesMensuales = async (): Promise<void> => {
     if (currentUser.role !== 'ADMIN') {
       showToast('error', 'Acceso denegado', 'Solo un administrador puede emitir los cupones mensuales.');
@@ -602,7 +614,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ]);
       setCupones(cuponesActualizados);
       setSocios(sociosActualizados);
-      showToast('success', 'Emisión mensual finalizada', `${resultado.generados} generados, ${resultado.reemitidos} reemitidos y ${resultado.sociosSuspendidos} socios suspendidos.`);
+      const resumen = `${resultado.generados} nuevos, ${resultado.reemitidos} reemitidos y ${resultado.sociosSuspendidos} suspendidos.`;
+      showToast(
+        resultado.generados || resultado.reemitidos ? 'success' : 'info',
+        resultado.generados || resultado.reemitidos ? 'Emisión mensual finalizada' : 'No había cupones nuevos para emitir',
+        resultado.generados || resultado.reemitidos
+          ? resumen
+          : `Puede que ya estén emitidos para este período o que no haya socios activos. ${resumen}`,
+      );
     } catch (error) {
       showToast('error', 'No se pudieron emitir los cupones', error instanceof Error ? error.message : 'Error de conexión con el backend.');
     }
@@ -652,7 +671,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  // RENDICIONES SEMANALES DE COBRADORES (R9: 10% de comisión)
+  // Rendiciones semanales de cobradores.
   const crearRendicionSemanal = async (zonaCobro: number, cobradorNombre: string, cuponesIds: string[]): Promise<boolean> => {
     const selectedCupones = cupones.filter((coupon) => cuponesIds.includes(coupon.id));
     try {
@@ -704,6 +723,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         activeTab,
         setActiveTab,
         toast,
+        configuracion,
+        configuracionCargada,
+        refreshConfiguracion,
         showToast,
         closeToast,
         socios,
@@ -727,7 +749,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         asistencias,
         saveAsistencia,
         cupones,
-        generarCuponMesActual,
         generarCuponesMensuales,
         marcarCuponPagado,
         reemitirCuponConMora,

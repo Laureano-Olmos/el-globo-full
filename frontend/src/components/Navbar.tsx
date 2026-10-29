@@ -10,7 +10,6 @@ import {
   FileSpreadsheet,
   AlertOctagon,
   UserCheck,
-  FileText,
   ShieldCheck,
   LogOut,
   ChevronDown,
@@ -29,12 +28,8 @@ import { UserRole } from '../types';
 import { LoginModal } from './LoginModal';
 import { ConfiguracionModal } from './ConfiguracionModal';
 
-interface NavbarProps {
-  onOpenPlanDoc: () => void;
-}
-
-export const Navbar: React.FC<NavbarProps> = ({ onOpenPlanDoc }) => {
-  const { currentUser, logout, activeTab, setActiveTab, toast, closeToast, socios, cupones, rendiciones } = useApp();
+export const Navbar: React.FC = () => {
+  const { currentUser, logout, activeTab, setActiveTab, toast, closeToast, socios, cupones, rendiciones, configuracion, configuracionCargada } = useApp();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showConfiguracion, setShowConfiguracion] = useState(false);
@@ -42,6 +37,16 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenPlanDoc }) => {
   // Counts for notification badges
   const morososCount = socios.filter((s) => s.estado === 'SUSPENDIDO_MOROSIDAD').length;
   const rendicionesPendientes = rendiciones.filter((r) => r.estado === 'PENDIENTE_SECRETARIA').length;
+  const currentSocio = socios.find((socio) => socio.id === currentUser.socioId || socio.email === currentUser.email);
+  const cuotaSocio = currentSocio && configuracion
+    ? Number(currentSocio.esTitularFamilia
+      ? configuracion.cuotaGrupoFamiliar
+      : currentSocio.categoria === 'CADETE'
+        ? configuracion.cuotaCadete
+        : currentSocio.categoria === 'VITALICIO'
+          ? configuracion.cuotaVitalicio
+          : configuracion.cuotaActivo)
+    : null;
 
   const roleBadges: Record<UserRole, { bg: string; text: string; label: string }> = {
     ADMIN: { bg: 'bg-purple-700', text: 'text-white', label: 'ADMINISTRADOR' },
@@ -114,17 +119,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenPlanDoc }) => {
               </button>
             )}
 
-            {currentUser.role !== 'PUBLICO' && (
-              <button
-                onClick={onOpenPlanDoc}
-                className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium bg-slate-800/80 hover:bg-slate-700 rounded-md border border-slate-600 text-blue-100 transition-colors shadow-xs"
-                title="Plan de implementación"
-              >
-                <FileText className="w-4 h-4 text-red-400" />
-                <span className="hidden md:inline">Plan técnico</span>
-              </button>
-            )}
-
             {currentUser.role === 'ADMIN' && (
               <button
                 onClick={() => setShowConfiguracion(true)}
@@ -160,6 +154,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenPlanDoc }) => {
                   <div className="px-4 py-2 border-b border-slate-100 bg-slate-50">
                     <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Sesión activa</p>
                     <p className="text-xs text-slate-600">{currentUser.email || roleBadges[currentUser.role]?.label}</p>
+                    {currentUser.role === 'SOCIO' && (
+                      <p className="mt-2 border-t border-slate-200 pt-2 text-xs text-slate-700">
+                        Cuota mensual: <strong className="font-mono text-[#1A365D]">
+                          {cuotaSocio === null ? (configuracionCargada ? 'No disponible' : 'Cargando…') : `$${cuotaSocio.toLocaleString('es-AR')}`}
+                        </strong>
+                      </p>
+                    )}
                   </div>
                   {currentUser.role === 'PUBLICO' ? (
                     <button

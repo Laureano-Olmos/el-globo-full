@@ -93,7 +93,6 @@ export const ActividadesShowcase: React.FC = () => {
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase bg-amber-500 text-white">
               Deportes & Disciplinas
             </span>
-            <span className="text-xs text-slate-500 font-medium">Requerimiento R5</span>
             {isGuest && (
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-slate-600 text-white">
                 Modo Invitado
@@ -576,7 +575,6 @@ export const ActividadesShowcase: React.FC = () => {
                 </select>
               </div>
 
-              {/* R10 Warning */}
               <div className="p-2.5 bg-amber-50 border border-amber-200 rounded text-[11px] text-amber-800 flex items-start space-x-1.5">
                 <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                 <span>

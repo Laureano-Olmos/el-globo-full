@@ -22,7 +22,7 @@ export const CUOTA_VALORES = {
 };
 
 /**
- * Catálogo oficial de Zonas de Cobranza (R7/R9).
+ * Catálogo oficial de zonas de cobranza.
  */
 export const ZONAS_NOMBRES: Record<number, { nombre: string; descripcion: string; cobradorDefault: string }> = {
   0: {

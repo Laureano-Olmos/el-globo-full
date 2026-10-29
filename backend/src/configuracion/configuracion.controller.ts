@@ -5,6 +5,7 @@ import { UpdateConfiguracionDto } from './dto/update-configuracion.dto';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/enums/role.enum';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { Public } from '../common/decorators/public.decorator';
 
 @ApiTags('Configuración')
 @ApiBearerAuth()
@@ -14,7 +15,7 @@ export class ConfiguracionController {
   constructor(private readonly service: ConfiguracionService) {}
 
   @Get()
-  @Roles(Role.ADMIN)
+  @Public()
   get() {
     return this.service.getOrCreate();
   }

@@ -27,7 +27,7 @@ import {
   Waves,
   Building,
 } from 'lucide-react';
-import { CUOTA_VALORES, ZONAS_NOMBRES } from '../data/mockData';
+import { ZONAS_NOMBRES } from '../data/mockData';
 import { LoginModal } from './LoginModal';
 
 interface GuestHomeProps {
@@ -35,7 +35,12 @@ interface GuestHomeProps {
 }
 
 export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
-  const { setActiveTab, actividades, addSocio, showToast, currentUser } = useApp();
+  const { setActiveTab, actividades, addSocio, showToast, currentUser, configuracion, configuracionCargada } = useApp();
+  const isPublic = currentUser.role === 'PUBLICO';
+  const formatConfiguredAmount = (value?: number | string | null) => {
+    if (value !== undefined && value !== null && configuracion) return `$${Number(value).toLocaleString('es-AR')}`;
+    return configuracionCargada ? 'No disponible' : 'Cargando…';
+  };
 
   // Registration Form State
   const [formData, setFormData] = useState({
@@ -55,8 +60,8 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
   const [showDirectLogin, setShowDirectLogin] = useState(false);
 
   // Calculate age and category in real time for preview in the form
-  const getCategoryPreview = (birthDate: string) => {
-    if (!birthDate) return { label: 'Socio Activo', fee: CUOTA_VALORES.ACTIVO, isCadete: false };
+  const getCategoryPreview = (birthDate: string): { label: string; fee: number | null; isCadete: boolean } => {
+    if (!birthDate) return { label: 'Socio Activo', fee: configuracion ? Number(configuracion.cuotaActivo) : null, isCadete: false };
     const hoy = new Date();
     const nac = new Date(birthDate);
     let age = hoy.getFullYear() - nac.getFullYear();
@@ -67,13 +72,13 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
     if (age < 18) {
       return {
         label: `Socio Cadete (${age} años)`,
-        fee: CUOTA_VALORES.CADETE,
+        fee: configuracion ? Number(configuracion.cuotaCadete) : null,
         isCadete: true,
       };
     }
     return {
       label: `Socio Activo (${age} años)`,
-      fee: CUOTA_VALORES.ACTIVO,
+      fee: configuracion ? Number(configuracion.cuotaActivo) : null,
       isCadete: false,
     };
   };
@@ -184,13 +189,15 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
 
             {/* Primary Calls to Action */}
             <div className="mt-8 flex flex-wrap items-center gap-3.5">
-              <a
-                href="#asociarse"
-                className="px-6 py-3.5 rounded-lg bg-[#C53030] hover:bg-[#9B2C2C] text-white font-bold text-sm sm:text-base transition-all shadow-lg hover:shadow-red-900/40 flex items-center space-x-2 group"
-              >
-                <span>¡Quiero ser Socio!</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </a>
+              {isPublic && (
+                <a
+                  href="#asociarse"
+                  className="px-6 py-3.5 rounded-lg bg-[#C53030] hover:bg-[#9B2C2C] text-white font-bold text-sm sm:text-base transition-all shadow-lg hover:shadow-red-900/40 flex items-center space-x-2 group"
+                >
+                  <span>¡Quiero ser Socio!</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </a>
+              )}
 
               <a
                 href="#disciplinas"
@@ -200,14 +207,14 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
                 <span>Ver Deportes & Horarios</span>
               </a>
 
-              <button
+              {isPublic && <button
                 onClick={() => setShowDirectLogin(true)}
                 className="px-5 py-3.5 rounded-lg bg-slate-900/80 hover:bg-slate-900 text-slate-200 hover:text-white font-medium text-xs sm:text-sm border border-slate-700 transition-all flex items-center space-x-2"
                 title="Acceder con credenciales de Socio, Cobrador, Instructor o Administrador"
               >
                 <LogIn className="w-4 h-4 text-blue-400" />
                 <span>Ingresar</span>
-              </button>
+              </button>}
             </div>
 
             {/* Fast Stats Bar under Hero */}
@@ -267,7 +274,7 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
             <h3 className="font-bold text-base text-slate-900 mb-2">100 Casilleros con Seguridad</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
               Vestuarios renovados con 100 casilleros individuales con cerradura propia. Alquiler exclusivo para 
-              socios al día por un arancel mensual accesible de ${CUOTA_VALORES.CASILLERO_MENSUAL.toLocaleString('es-AR')}.
+              socios al día por un arancel mensual de {formatConfiguredAmount(configuracion?.costoCasillero)}.
             </p>
           </div>
 
@@ -277,7 +284,7 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
             </div>
             <h3 className="font-bold text-base text-slate-900 mb-2">Plan Grupo Familiar</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Bonificación estatutaria de ${CUOTA_VALORES.DESCUENTO_FAMILIAR_POR_HIJO.toLocaleString('es-AR')} mensual por cada hijo menor de 18 años adherido al socio titular. Cuidamos la economía familiar.
+              Plan familiar con una cuota mensual de {formatConfiguredAmount(configuracion?.cuotaGrupoFamiliar)} para el grupo adherido. Cuidamos la economía familiar.
             </p>
           </div>
 
@@ -360,7 +367,7 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
 
               <div className="my-6 p-4 rounded-xl bg-black/40 border border-white/10">
                 <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-                  ${CUOTA_VALORES.CADETE.toLocaleString('es-AR')}
+                  {formatConfiguredAmount(configuracion?.cuotaCadete)}
                 </span>
                 <span className="text-xs text-slate-300 font-normal"> / mes</span>
                 <span className="block text-[11px] text-teal-300/90 mt-1">Tarifa reducida institucional</span>
@@ -409,10 +416,10 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
 
               <div className="my-6 p-4 rounded-xl bg-red-50/80 border border-red-200">
                 <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-                  ${CUOTA_VALORES.ACTIVO.toLocaleString('es-AR')}
+                  {formatConfiguredAmount(configuracion?.cuotaActivo)}
                 </span>
                 <span className="text-xs text-slate-600 font-normal"> / mes</span>
-                <span className="block text-[11px] text-[#C53030] font-semibold mt-1">Apto para Plan Familiar (-$1.500/hijo)</span>
+                <span className="block text-[11px] text-[#C53030] font-semibold mt-1">Cuota familiar: {formatConfiguredAmount(configuracion?.cuotaGrupoFamiliar)}/mes</span>
               </div>
 
               <ul className="space-y-2.5 text-xs text-slate-700">
@@ -602,7 +609,7 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
                     >
                       Inscribirme (Mi Perfil)
                     </button>
-                  ) : (
+                  ) : isPublic ? (
                     <a
                       href="#asociarse"
                       onClick={() => setFormData((prev) => ({ ...prev, actividadInteresId: act.id }))}
@@ -611,6 +618,13 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
                     >
                       Asociarme e Inscribirme
                     </a>
+                  ) : (
+                    <button
+                      onClick={() => setActiveTab('actividades')}
+                      className="px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 text-[#1A365D] text-xs font-bold transition-colors"
+                    >
+                      Ver actividades
+                    </button>
                   )}
                 </div>
               </div>
@@ -620,7 +634,7 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
       </section>
 
       {/* 5. FORMULARIO DE ALTA ONLINE / QUIERO SER SOCIO */}
-      <section
+      {isPublic && <section
         id="asociarse"
         className="bg-white rounded-2xl border-2 border-slate-200 shadow-xl overflow-hidden p-6 sm:p-10"
       >
@@ -649,8 +663,7 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
                   </h3>
                   <p className="text-xs text-emerald-800 mt-1 leading-relaxed">
                     Tu solicitud fue procesada exitosamente. Ya formás parte del padrón de socios del Club El Globo 
-                    como <strong>{formSubmittedSuccess.categoria}</strong> con una cuota base de 
-                    <strong> ${formSubmittedSuccess.cuota.toLocaleString('es-AR')}/mes</strong> asignado a la 
+                    como <strong>{formSubmittedSuccess.categoria}</strong>{formSubmittedSuccess.cuota !== null && <> con una cuota base de <strong> ${formSubmittedSuccess.cuota.toLocaleString('es-AR')}/mes</strong></>} asignado a la
                     <strong> {formSubmittedSuccess.zona}</strong>.
                   </p>
                   <p className="mt-2 text-xs font-medium text-emerald-900">
@@ -831,7 +844,7 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
             </div>
           </form>
         </div>
-      </section>
+      </section>}
 
       {/* 6. SEDE, HORARIOS Y CONTACTO */}
       <section className="bg-slate-200/70 rounded-2xl p-6 sm:p-8 border border-slate-300">
@@ -871,7 +884,7 @@ export const GuestHome: React.FC<GuestHomeProps> = ({ onOpenLoginModal }) => {
         </div>
       </section>
 
-      <LoginModal isOpen={showDirectLogin} onClose={() => setShowDirectLogin(false)} />
+      {isPublic && <LoginModal isOpen={showDirectLogin} onClose={() => setShowDirectLogin(false)} />}
     </div>
   );
 };

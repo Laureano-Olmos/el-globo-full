@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
 import { Dashboard } from './components/Dashboard';
@@ -11,14 +11,11 @@ import { RendicionCobrador } from './components/RendicionCobrador';
 import { MorosidadControl } from './components/MorosidadControl';
 import { SocioPortal } from './components/SocioPortal';
 import { GuestHome } from './components/GuestHome';
-import { PlanDocumentModal } from './components/PlanDocumentModal';
 import { PersonalAdmin } from './components/PersonalAdmin';
 import { Building2, ShieldCheck, Heart } from 'lucide-react';
 
 const AppContent: React.FC = () => {
   const { activeTab, setActiveTab, currentUser } = useApp();
-  const [isPlanDocOpen, setIsPlanDocOpen] = useState(false);
-
   const renderContent = () => {
     switch (activeTab) {
       case 'inicio':
@@ -43,8 +40,6 @@ const AppContent: React.FC = () => {
         return <PersonalAdmin />;
       case 'portal_socio':
         return <SocioPortal />;
-      case 'plan_doc':
-        return <Dashboard />;
       default:
         return currentUser.role === 'PUBLICO' ? <GuestHome /> : <Dashboard />;
     }
@@ -52,22 +47,11 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-800 antialiased selection:bg-red-200 selection:text-red-900">
-      <Navbar onOpenPlanDoc={() => setIsPlanDocOpen(true)} />
+      <Navbar />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {renderContent()}
       </main>
-
-      {/* Technical Implementation Plan Modal */}
-      <PlanDocumentModal
-        isOpen={isPlanDocOpen || activeTab === 'plan_doc'}
-        onClose={() => {
-          setIsPlanDocOpen(false);
-          if (activeTab === 'plan_doc') {
-            setActiveTab('dashboard');
-          }
-        }}
-      />
 
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-6 mt-12 text-xs text-slate-500">

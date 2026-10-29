@@ -20,7 +20,7 @@ import { CuponRecibo } from '../types';
 import titularCardBg from '../assets/images/titular_card_bg_1789672816138.jpg';
 
 export const SocioPortal: React.FC = () => {
-  const { socios, actividades, cupones, currentUser, unenrollSocioFromActividad, setActiveTab } = useApp();
+  const { socios, actividades, cupones, currentUser, unenrollSocioFromActividad, setActiveTab, configuracion, configuracionCargada } = useApp();
 
   // Selected socio (defaults to currentUser.socioId if logged in as socio, or first socio)
   const defaultSocioId = (currentUser.role === 'SOCIO' && currentUser.socioId)
@@ -51,6 +51,15 @@ export const SocioPortal: React.FC = () => {
   const zona = ZONAS_NOMBRES[socio.zonaCobro];
   const misActividades = actividades.filter((a) => socio.actividadesIds.includes(a.id));
   const misCupones = cupones.filter((c) => c.socioId === socio.id);
+  const cuotaBase = configuracion
+    ? Number(socio.esTitularFamilia
+      ? configuracion.cuotaGrupoFamiliar
+      : socio.categoria === 'CADETE'
+        ? configuracion.cuotaCadete
+        : socio.categoria === 'VITALICIO'
+          ? configuracion.cuotaVitalicio
+          : configuracion.cuotaActivo)
+    : null;
 
   return (
     <div className="space-y-6">
@@ -68,6 +77,11 @@ export const SocioPortal: React.FC = () => {
             <CreditCard className="w-6 h-6 text-[#C53030]" />
             <span>Credencial Digital & Autogestión</span>
           </h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Cuota mensual base: <strong className="font-mono text-[#1A365D]">
+              {cuotaBase === null ? (configuracionCargada ? 'No disponible' : 'Cargando…') : `$${cuotaBase.toLocaleString('es-AR')}`}
+            </strong>
+          </p>
           <p className="text-xs text-slate-500 mt-0.5">
             Acceso a instalaciones, estado de cuenta, casillero y disciplinas deportivas.
           </p>
@@ -157,7 +171,7 @@ export const SocioPortal: React.FC = () => {
                     isSuspended ? 'bg-red-500 text-white animate-pulse' : 'bg-emerald-500 text-white'
                   }`}
                 >
-                  {isSuspended ? 'SUSPENDIDO (R10)' : 'HABILITADO'}
+                  {isSuspended ? 'SUSPENDIDO POR MOROSIDAD' : 'HABILITADO'}
                 </span>
               </div>
 
@@ -237,7 +251,7 @@ export const SocioPortal: React.FC = () => {
               <ShieldAlert className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
               <div>
                 <strong className="block text-sm font-bold text-red-950 mb-0.5">
-                  Atención: Acceso Suspendido por Morosidad (R10)
+                  Atención: acceso suspendido por morosidad
                 </strong>
                 <p>
                   Usted registra {socio.cuotasAdeudadas} cuotas consecutivas adeudadas. Para habilitar su carnet en los molinetes, hacer uso de su casillero o continuar en sus disciplinas deportivas, por favor regularice su saldo pendiente con el cobrador de zona o en secretaría.
@@ -318,7 +332,7 @@ export const SocioPortal: React.FC = () => {
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
               <div className="flex items-center space-x-2 mb-3 text-slate-800 font-bold text-xs uppercase tracking-wider">
                 <Users className="w-4 h-4 text-[#C53030]" />
-                <span>Grupo Familiar Asociado (R4)</span>
+                <span>Grupo familiar asociado</span>
               </div>
 
               {socio.familiares.length === 0 ? (

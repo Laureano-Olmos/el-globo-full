@@ -87,6 +87,6 @@ export const cuponesApi = {
   },
 
   async generarMensual(periodo?: string): Promise<{ generados: number; reemitidos: number; sociosSuspendidos: number }> {
-    return api.post('/cupones/generar-mensual', null, { params: { periodo } });
+    return api.post('/cupones/generar-mensual', undefined, { params: { periodo } });
   },
 };

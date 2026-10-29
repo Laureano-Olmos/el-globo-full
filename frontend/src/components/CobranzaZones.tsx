@@ -25,6 +25,19 @@ export const CobranzaZones: React.FC = () => {
   const [selectedEstado, setSelectedEstado] = useState<string>('TODOS');
   const [searchTerm, setSearchTerm] = useState('');
   const [viewingCupon, setViewingCupon] = useState<CuponRecibo | null>(null);
+  const [generandoCupones, setGenerandoCupones] = useState(false);
+
+  const handleGenerarCupones = async () => {
+    const now = new Date();
+    const periodo = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    if (!window.confirm(`¿Generar los cupones correspondientes a ${periodo}? El proceso aplica las reglas de cobranza y no duplica cupones ya emitidos.`)) return;
+    setGenerandoCupones(true);
+    try {
+      await generarCuponesMensuales();
+    } finally {
+      setGenerandoCupones(false);
+    }
+  };
 
   // Auto-filter by assigned zone if logged in as a Cobrador
   React.useEffect(() => {
@@ -55,7 +68,6 @@ export const CobranzaZones: React.FC = () => {
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase bg-[#1A365D] text-white">
               Tesorería & Zonas
             </span>
-            <span className="text-xs text-slate-500 font-medium">Requerimientos R7, R8 y R11</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-[#1A365D] tracking-tight flex items-center space-x-2">
             <Receipt className="w-6 h-6 text-[#C53030]" />
@@ -68,11 +80,12 @@ export const CobranzaZones: React.FC = () => {
 
         {currentUser.role === 'ADMIN' && (
           <button
-            onClick={() => void generarCuponesMensuales()}
+            onClick={() => void handleGenerarCupones()}
+            disabled={generandoCupones}
             className="px-4 py-2 bg-[#1A365D] hover:bg-[#2B6CB0] text-white text-xs font-bold rounded-lg shadow-sm transition-colors flex items-center space-x-1.5"
           >
-            <PlusCircle className="w-4 h-4" />
-            <span>Generar cupones del mes</span>
+            {generandoCupones ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <PlusCircle className="w-4 h-4" />}
+            <span>{generandoCupones ? 'Generando…' : 'Generar cupones del mes'}</span>
           </button>
         )}
       </div>
@@ -191,7 +204,7 @@ export const CobranzaZones: React.FC = () => {
                     <td className="p-3.5 text-slate-600">
                       {cupon.periodoMes}
                       {cupon.montoRecargoMora > 0 && (
-                        <span className="block text-[10px] text-red-600 font-bold">+5% Mora (R11)</span>
+                        <span className="block text-[10px] text-red-600 font-bold">+5% Mora</span>
                       )}
                     </td>
                     <td className="p-3.5 text-right font-mono font-black text-sm text-slate-900">

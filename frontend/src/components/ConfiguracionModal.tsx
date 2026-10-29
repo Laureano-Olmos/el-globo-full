@@ -37,7 +37,7 @@ interface ConfiguracionModalProps {
 }
 
 export const ConfiguracionModal: React.FC<ConfiguracionModalProps> = ({ onClose }) => {
-  const { showToast } = useApp();
+  const { showToast, refreshConfiguracion } = useApp();
   const [values, setValues] = useState<Partial<BackendConfiguracion>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -58,6 +58,7 @@ export const ConfiguracionModal: React.FC<ConfiguracionModalProps> = ({ onClose 
       const payload = Object.fromEntries(fields.map(({ key }) => [key, Number(values[key])])) as Partial<BackendConfiguracion>;
       const updated = await configuracionApi.update(payload);
       setValues(updated);
+      await refreshConfiguracion();
       showToast('success', 'Configuración actualizada', 'Los parámetros del club se guardaron en el backend.');
       onClose();
     } catch (error) {

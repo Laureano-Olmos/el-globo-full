@@ -90,6 +90,11 @@ export class CuponesService {
     reemitidos: number;
     sociosSuspendidos: number;
   }> {
+    const cuponesExistentes = await this.repo.count({ where: { periodo } });
+    if (cuponesExistentes > 0) {
+      return { generados: 0, reemitidos: 0, sociosSuspendidos: 0 };
+    }
+
     await this.aplicarControlDeMorosidad(periodo);
 
     const config = await this.configuracionService.getOrCreate();
@@ -98,15 +103,10 @@ export class CuponesService {
       relations: ['grupoFamiliar', 'inscripciones', 'inscripciones.actividad', 'casillero'],
     });
 
-    const yaEmitidos = await this.repo.find({ where: { periodo } });
-    const socioIdsConCupon = new Set(yaEmitidos.map((c) => c.socio?.id).filter(Boolean));
-
     let generados = 0;
     const gruposYaFacturados = new Set<number>();
 
     for (const socio of socios) {
-      if (socioIdsConCupon.has(socio.id)) continue; // evita duplicar si se corre dos veces
-
       // Plan grupo familiar: un solo recibo por grupo (se emite una vez, sobre el titular).
       if (socio.grupoFamiliar) {
         if (gruposYaFacturados.has(socio.grupoFamiliar.id)) continue;

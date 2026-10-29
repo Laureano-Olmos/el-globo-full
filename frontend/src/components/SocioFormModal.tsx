@@ -112,7 +112,7 @@ export const SocioFormModal: React.FC<SocioFormModalProps> = ({ socioToEdit, isO
           <div className="flex items-center space-x-2">
             <UserCheck className="w-5 h-5 text-red-400" />
             <span className="font-bold text-sm tracking-wide">
-              {socioToEdit ? `EDITAR SOCIO N° ${socioToEdit.numeroSocio}` : 'ALTA DE NUEVO SOCIO (R2 - R3)'}
+              {socioToEdit ? `EDITAR SOCIO N° ${socioToEdit.numeroSocio}` : 'ALTA DE NUEVO SOCIO'}
             </span>
           </div>
           <button onClick={onClose} className="p-1 text-white/80 hover:text-white rounded">
@@ -130,12 +130,12 @@ export const SocioFormModal: React.FC<SocioFormModalProps> = ({ socioToEdit, isO
             </div>
           )}
 
-          {/* Dynamic Categorization Badge Banner (R2) */}
+          {/* Dynamic category preview */}
           {previewCalculation && (
             <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-                  Cálculo Automático de Categoría (R2):
+                  Cálculo automático de categoría:
                 </span>
                 <span className="text-xs text-slate-700">
                   Edad calculada: <strong>{previewCalculation.edad} años</strong> • Antigüedad: <strong>{previewCalculation.antiguedadAnios} años</strong>
@@ -169,7 +169,7 @@ export const SocioFormModal: React.FC<SocioFormModalProps> = ({ socioToEdit, isO
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700 mb-1">DNI Único * (R3)</label>
+              <label className="block text-[11px] font-semibold text-slate-700 mb-1">DNI único *</label>
               <input
                 type="text"
                 required
@@ -181,7 +181,7 @@ export const SocioFormModal: React.FC<SocioFormModalProps> = ({ socioToEdit, isO
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700 mb-1">Zona de Cobro Asignada * (R7)</label>
+              <label className="block text-[11px] font-semibold text-slate-700 mb-1">Zona de cobro asignada *</label>
               <select
                 value={zonaCobro}
                 onChange={(e) => setZonaCobro(Number(e.target.value))}

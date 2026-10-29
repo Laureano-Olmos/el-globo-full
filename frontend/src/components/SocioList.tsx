@@ -24,7 +24,7 @@ import { SocioFormModal } from './SocioFormModal';
 import { FamiliarModal } from './FamiliarModal';
 
 export const SocioList: React.FC = () => {
-  const { socios, deleteSocio, generarCuponMesActual, regularizarDeudaSocio, setActiveTab } = useApp();
+  const { socios, deleteSocio, regularizarDeudaSocio, setActiveTab, configuracion } = useApp();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategoria, setSelectedCategoria] = useState<string>('TODAS');
@@ -75,10 +75,10 @@ export const SocioList: React.FC = () => {
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-[#1A365D] tracking-tight flex items-center space-x-2">
             <Users className="w-6 h-6 text-[#C53030]" />
-            <span>Padrón de Socios y Categorización (R2 - R3)</span>
+            <span>Padrón de socios y categorías</span>
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Gestión completa de socios, cálculo dinámico de categorías y vinculación al Plan Grupo Familiar (R4).
+            Gestión de socios, categorías y grupos familiares.
           </p>
         </div>
 
@@ -130,7 +130,7 @@ export const SocioList: React.FC = () => {
             <option value="TODOS">Todos los Estados</option>
             <option value="AL_DIA">Al Día (Sin deuda)</option>
             <option value="DEUDOR_1_MES">Deudor 1 Mes (Aviso)</option>
-            <option value="SUSPENDIDO_MOROSIDAD">Suspendido Morosidad (R10)</option>
+            <option value="SUSPENDIDO_MOROSIDAD">Suspendido por morosidad</option>
           </select>
         </div>
 
@@ -156,6 +156,15 @@ export const SocioList: React.FC = () => {
           const isSuspended = socio.estado === 'SUSPENDIDO_MOROSIDAD';
           const isDeudor = socio.estado === 'DEUDOR_1_MES';
           const zona = ZONAS_NOMBRES[socio.zonaCobro];
+          const cuotaBase = configuracion
+            ? Number(socio.esTitularFamilia
+              ? configuracion.cuotaGrupoFamiliar
+              : socio.categoria === 'CADETE'
+                ? configuracion.cuotaCadete
+                : socio.categoria === 'VITALICIO'
+                  ? configuracion.cuotaVitalicio
+                  : configuracion.cuotaActivo)
+            : null;
 
           return (
             <div
@@ -208,6 +217,13 @@ export const SocioList: React.FC = () => {
                 </h3>
                 <p className="text-xs text-slate-500 font-mono mb-3">DNI: {socio.dni}</p>
 
+                  <div className="mb-3 flex items-center justify-between rounded border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs">
+                    <span className="text-emerald-900">Cuota mensual base</span>
+                    <strong className="font-mono text-emerald-800">
+                      {cuotaBase === null ? 'Cargando…' : `$${cuotaBase.toLocaleString('es-AR')}`}
+                    </strong>
+                  </div>
+
                 {/* Info List */}
                 <div className="space-y-1.5 text-xs text-slate-600 border-t border-slate-100 pt-2 mb-3">
                   <div className="flex items-center space-x-1.5">
@@ -237,12 +253,12 @@ export const SocioList: React.FC = () => {
                   )}
                 </div>
 
-                {/* Warning if suspended R10 */}
+                {/* Warning if member is suspended */}
                 {isSuspended && (
                   <div className="mb-3 p-2 bg-red-100/70 border border-red-300 rounded text-[11px] text-red-800 flex items-start space-x-1.5">
                     <ShieldAlert className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
                     <span>
-                      <strong>Bloqueo Activo (R10):</strong> Adeuda {socio.cuotasAdeudadas} cuotas. Acceso bloqueado a deportes y casilleros.
+                      <strong>Bloqueo activo:</strong> Adeuda {socio.cuotasAdeudadas} cuotas. Acceso bloqueado a deportes y casilleros.
                     </span>
                   </div>
                 )}
@@ -254,16 +270,17 @@ export const SocioList: React.FC = () => {
                   <button
                     onClick={() => setSocioFamilia(socio)}
                     className="flex-1 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#2B6CB0] rounded text-xs font-semibold flex items-center justify-center space-x-1 transition-colors"
-                    title="Administrar Grupo Familiar (R4)"
+                    title="Administrar grupo familiar"
                   >
                     <Users2 className="w-3.5 h-3.5" />
                     <span>Plan Familiar ({socio.familiares.length})</span>
                   </button>
 
                   <button
-                    onClick={() => generarCuponMesActual(socio.id)}
+                    onClick={() => setActiveTab('cobranza')}
                     className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition-colors"
-                    title="Emitir Cupón de Pago Mes en Curso"
+                    title="Ir a emisión mensual de cupones"
+                    aria-label="Ir a emisión mensual de cupones"
                   >
                     <Receipt className="w-4 h-4" />
                   </button>
